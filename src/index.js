@@ -6,7 +6,13 @@ class Content extends React.Component {
     super(props);
     this.handleMakeMenuInvisible = this.handleMakeMenuInvisible.bind(this);
     this.handleMakeMenuIsVisible = this.handleMakeMenuIsVisible.bind(this);
-    this.state = { menuIsVisible: false };
+    this.handleAddTask = this.handleAddTask.bind(this);
+    this.state = {
+      menuIsVisible: false,
+      tasks: [
+        { name: "First task", description: "Description of task" }
+      ]
+    };
   }
   handleMakeMenuIsVisible() {
     this.setState(
@@ -16,22 +22,56 @@ class Content extends React.Component {
     this.setState(
       { menuIsVisible: false });
   }
+  handleAddTask(name, description) {
+    this.setState({
+      tasks: this.state.tasks.concat(
+        [
+          { name: name, description: description }
+        ]
+      )
+    });
+  }
   render() {
-    const menuIsVisible = this.state.menuIsVisible;
-    return (<div className="content"> <TaskOverview changeMenuIsVisible={this.handleMakeMenuIsVisible} menuIsVisible={this.state.menuIsVisible} />
-      <NewTaskForm changeMenuIsVisible={this.handleMakeMenuInvisible} menuIsVisible={this.state.menuIsVisible} /></div>);
+    return (<div className="content"> <TaskOverview changeMenuIsVisible={this.handleMakeMenuIsVisible} menuIsVisible={this.state.menuIsVisible} tasks={this.state.tasks} />
+      <NewTaskForm changeMenuIsVisible={this.handleMakeMenuInvisible} menuIsVisible={this.state.menuIsVisible} handleAddTask={this.handleAddTask} /></div>);
   }
 }
-
+class Task extends React.Component {
+  render() {
+    return (
+      <div
+        className="task">
+        <h2 className="text-2xl	 w-full">{this.props.name}</h2>
+        <p>{this.props.description}</p>
+      </div>
+    );
+  }
+}
 class NewTaskForm extends React.Component {
   constructor(props) {
     super(props);
+
+    this.state = {
+      name: '',
+      description: ''
+    }
     this.changeMenuIsVisible = this.changeMenuIsVisible.bind(this);
+    this.handleAddTask = this.handleAddTask.bind(this);
+    this.handleNameChange = this.handleNameChange.bind(this)
+    this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
   }
-
-
+  handleAddTask(e) {
+    e.preventDefault();
+    this.props.handleAddTask(this.state.name, this.state.description);
+  }
   changeMenuIsVisible() {
     this.props.changeMenuIsVisible();
+  }
+  handleNameChange(event) {
+    this.setState({ name: event.target.value });
+  }
+  handleDescriptionChange(event) {
+    this.setState({ description: event.target.value });
   }
   render() {
 
@@ -49,9 +89,9 @@ class NewTaskForm extends React.Component {
                   d="M2.146 2.146a.5.5 0 0 0 0 .708l11 11a.5.5 0 0 0 .708-.708l-11-11a.5.5 0 0 0-.708 0Z" />
               </svg>
             </div>
-            <form onSubmit={handleSubmit} className=" text-white">
-              <input type="text" placeholder="Name" className="focus:ring-2 ring-indigo-400" id="name" /><br />
-              <input type="text" placeholder="Description" className="focus:ring-2 ring-indigo-400" id="description" /><br />
+            <form onSubmit={this.handleAddTask} className=" text-white">
+              <input type="text" value={this.state.name} onChange={this.handleNameChange} placeholder="Name" className="focus:ring-2 ring-indigo-400" id="name" /><br />
+              <input type="text" value={this.state.description} onChange={this.handleDescriptionChange} placeholder="Description" className="focus:ring-2 ring-indigo-400" id="description" /><br />
               <input type="date" className="text-indigo-500 rounded-lg bg-indigo-200 shadow-inner mt-2 w-52 h-10" /><br />
               <select name="importancy"
                 className="w-52 h-10 text-indigo-500 rounded-lg bg-indigo-200 shadow-inner mt-2 focus:ring-2 ring-indigo-400">
@@ -92,12 +132,15 @@ class TaskOverview extends React.Component {
         <div className="col-span-2">
           <div
             className="h-96 p-10 font-mono text-gray-400 bg-gray-200 bg-opacity-70 backdrop-filter backdrop-blur rounded-lg shadow-2xl mx-3 mt-3 text-center">
-            <div className="underline text-3xl">Pending</div>
-            <div id="root">
-            </div>
             <button
               className="shadow-inner text-xl rounded-full py-2 px-4 bg-transparent text-gray-400 mt-1 mb-1 transition-all duration-500 ease-in-out hover:text-indigo-400 hover:bg-indigo-100"
               onClick={this.changeMenuIsVisible}>+ new task</button>
+            <div className="underline text-3xl">Pending</div>
+            <div id="root">
+              {this.props.tasks.map((item, index) => (
+                <Task key={index} name={item.name} description={item.description} />
+              ))}
+            </div>
             <div className="underline text-3xl">Complete</div>
           </div>
         </div>
@@ -114,6 +157,7 @@ class TaskOverview extends React.Component {
     );
   }
 }
+
 ReactDOM.render(
   <React.StrictMode>
     <Title />
@@ -121,6 +165,3 @@ ReactDOM.render(
   </React.StrictMode>,
   document.getElementById('root')
 );
-function handleSubmit(e) {
-  e.preventDefault();
-}
